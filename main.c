@@ -3,6 +3,13 @@
 #include <string.h>
 #include <unistd.h>
 
+int check_user_permission(const char *user, const char *command) 
+{
+    // Placeholder for user permission checking logic
+    // In a real implementation, this would check a configuration file or database
+    return 1; // Allow all for now
+}
+
 int main() 
 {
     char *cmd = getenv("SSH_ORIGINAL_COMMAND");
@@ -17,11 +24,20 @@ int main()
 
     if (strncmp(cmd, "git-", 4) == 0) 
     {
-        char *argv[] = {"/usr/bin/git-shell", "-c", cmd, NULL};
-        execv("/usr/bin/git-shell", argv);
+        if (!check_user_permission(getenv("SSH_USER"), cmd)) 
+        {
+            printf("Permission denied for command: %s\n", cmd);
+            return 1;
+        }
 
-        perror("Could not execute git command: execv failed");
-        return 1;
+        else
+        {
+            char *argv[] = {"/usr/bin/git-shell", "-c", cmd, NULL};
+            execv("/usr/bin/git-shell", argv);
+
+            perror("Could not execute git command: execv failed");
+            return 1;
+        }
     } 
     
     else 
