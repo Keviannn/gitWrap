@@ -9,7 +9,7 @@ int main()
 
     if (cmd == NULL || strlen(cmd) == 0) 
     {
-        printf("Hi %s! You've successfully authenticated!\n", getenv("USER"));
+        printf("Hi %s! You've successfully authenticated!\n", getenv("SSH_USER"));
         printf("But you can't log in with a shell :(\n\n");
         printf("Bye!\n");
         return 1;
