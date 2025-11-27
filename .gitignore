@@ -2,3 +2,4 @@
 .clangd
 test.conf
 roadmap.txt
+*.o
