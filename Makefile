@@ -1,7 +1,8 @@
 DEST = ./bin/
 TARGET = gitwrap
 
-SRC = main.c
+SRC = main.c commands.c
+OBJ = $(SRC:.c=.o)
 
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -O3
@@ -11,8 +12,11 @@ all: $(DEST)$(TARGET)
 $(DEST):
 	mkdir -p $(DEST)
 
-$(DEST)$(TARGET): $(SRC) | $(DEST)
-	$(CC) $(CFLAGS) -o $(DEST)$(TARGET) $(SRC)
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(DEST)$(TARGET): $(OBJ) | $(DEST)
+	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
-	rm -f $(DEST)$(TARGET)
+	rm -f $(OBJ) $(DEST)$(TARGET)
