@@ -3,47 +3,63 @@
 #include <string.h>
 #include <unistd.h>
 
-int check_user_permission(const char *user, const char *command) 
+#include "commands.h"
+
+#define GIT_CONF "./gitwrap.conf"
+#define GIT_SHELL "/usr/bin/git-shell"
+#define SHELL "/bin/sh"
+#define CREATE_REPOSITORY "./create_repository.sh"
+
+int execute_in_shell(char *shell_path, char *command, char *argv[4])
 {
-    // Placeholder for user permission checking logic
-    // In a real implementation, this would check a configuration file or database
-    return 1; // Allow all for now
+    argv[0] = shell_path;
+    argv[2] = command;
+
+    execv(shell_path, argv);
+    perror("Could not execute git command: execv failed");
+
+    return 1;
 }
 
 int main() 
 {
-    char *cmd = getenv("SSH_ORIGINAL_COMMAND");
+    char *ssh_command = getenv("SSH_ORIGINAL_COMMAND");
 
-    if (cmd == NULL || strlen(cmd) == 0) 
-    {
-        printf("Hi %s! You've successfully authenticated!\n", getenv("SSH_USER"));
-        printf("But you can't log in with a shell :(\n\n");
-        printf("Bye!\n");
-        return 1;
-    }
+    char *argv[4];
+    argv[1] = "-c";
+    argv[3] = NULL;
 
-    if (strncmp(cmd, "git-", 4) == 0) 
-    {
-        if (!check_user_permission(getenv("SSH_USER"), cmd)) 
-        {
-            printf("Permission denied for command: %s\n", cmd);
-            return 1;
-        }
+    char *repo_var;
 
-        else
-        {
-            char *argv[] = {"/usr/bin/git-shell", "-c", cmd, NULL};
-            execv("/usr/bin/git-shell", argv);
+    switch (classify_command(ssh_command)) {
+        case GIT_WELCOME:
+            printf("Hi %s! You've successfully authenticated!\n", getenv("SSH_USER"));
+            printf("But you can't log in with a shell :(\n\n");
+            printf("Bye!\n");
+            break;
+        case GIT_CREATE:
+            asprintf(&repo_var, "REPO_NAME=%s", strtok(NULL, " "));
+            argv[0] = SHELL;
+            argv[2] = CREATE_REPOSITORY;
 
+            execve(SHELL, argv, &repo_var);
             perror("Could not execute git command: execv failed");
+
             return 1;
-        }
-    } 
-    
-    else 
-    {
-        printf("Command not allowed: %s\n", cmd);
-        return 1;
+        case GIT_PUSH:
+            if(execute_in_shell(GIT_SHELL, ssh_command, argv))
+                return 1;
+            break;
+        case GIT_PULL:
+            if(execute_in_shell(GIT_SHELL, ssh_command, argv))
+                return 1;
+            break;
+        case GIT_NO_PERMISSION:
+            printf("Permission denied for command: %s\n", ssh_command);
+            break;
+        case GIT_NOT_ALLOWED:
+            printf("Command not allowed: %s\n", ssh_command);
+            break;
     }
 
     return 0;
