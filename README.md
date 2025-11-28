@@ -11,6 +11,7 @@ I started from the basics: saying hello to Git users via SSH but don't giving th
 
 Then I started liking the idea, and here we are now.
 
+
 ## Roadmap
 
 This are the basic starting prerequisites for gitWrap:
@@ -62,3 +63,6 @@ ssh git@gitWrap create repoName
 ---
 
 **Permissions and user management is still under development.**
+
+## Curiosities
+- This project is being tracked in my own server, and it is configured so every time I push something to my repository, it is compiled with a hook, so it is always ready to test.
