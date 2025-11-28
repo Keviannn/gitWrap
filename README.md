@@ -11,7 +11,6 @@ I started from the basics: saying hello to Git users via SSH but don't giving th
 
 Then I started liking the idea, and here we are now.
 
-
 ## Roadmap
 
 This are the basic starting prerequisites for gitWrap:
@@ -20,8 +19,13 @@ This are the basic starting prerequisites for gitWrap:
 - [x] User validation and identificaition.
 - [x] Welcome users with a custom message upon SSH connection.
 - [ ] Remote repository creation.
+    - [x] Complete repository creation script.
+    - [ ] Correctly call the script from the binary.
 - [ ] Access to repositories with git@gitWrap:repoName syntax.
-- [ ] User and permission management.
+- [ ] User permission management.
+    - [ ] Different permission levels.
+    - [ ] Automatically set permissions on repository creation.
+    - [ ] Commands to modify user permissions on repositories.
 
 More features will be added to the roadmap as the project evolves.
 
@@ -66,3 +70,5 @@ ssh git@gitWrap create repoName
 
 ## Curiosities
 - This project is being tracked in my own server, and it is configured so every time I push something to my repository, it is compiled with a hook, so it is always ready to test.
+- The project was born from the need to have a server for an university social media group project, so I decided to host it myself, as I already had a server running for other purposes, but still wanted everyone to be able to contribute easily.
+
