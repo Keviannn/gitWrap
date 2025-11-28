@@ -18,7 +18,7 @@ This are the basic starting prerequisites for gitWrap:
 - [x] Basic Git over SSH functionality.
 - [x] User validation and identificaition.
 - [x] Welcome users with a custom message upon SSH connection.
-- [ ] Remote repository creation. ██████░░░░ 60%
+- [ ] Remote repository creation.
 - [ ] Access to repositories with git@gitWrap:repoName syntax.
 - [ ] User and permission management.
 
