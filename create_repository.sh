@@ -6,7 +6,7 @@ set -eu
 
 NAME=repoMaker
 
-BASE_DIR="$HOME/repo"
+BASE_DIR="$HOME"
 
 mkdir -p "$BASE_DIR" || { echo "$NAME: ERROR Could not create base directory"; exit 1; }
 
