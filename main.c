@@ -6,6 +6,7 @@
 
 #include "commands.h"
 #include "utils.h"
+#include "permissions.h"
 
 #define LOCATION "./gitWrap/bin"
 #define GIT_CONF "../gitwrap.conf"
@@ -17,6 +18,7 @@ int main()
 {
     char *path;
 
+    // Change to the gitWrap/bin directory
     if(asprintf(&path, "%s/%s", getenv("HOME"), LOCATION) == -1) {
         fperror("Memory allocation error");
         return 1;
@@ -29,13 +31,16 @@ int main()
 
     free(path);
 
+    // Get the original SSH command
     char *ssh_command = getenv("SSH_ORIGINAL_COMMAND");
 
-    char *argv[4];
-    argv[1] = "-c";
-    argv[3] = NULL;
+    // Parse the command to get the repository name
+    char *ssh_command_copy = strdup(ssh_command);
+    char *command = strtok(ssh_command_copy, " ");
+    char *repository = strtok(NULL, " ");
 
-    switch (classify_command(ssh_command)) {
+    // Classify and execute the command
+    switch (classify_command(command)) {
         case GIT_WELCOME:
             printf("Hi %s! You've successfully authenticated!\n", getenv("SSH_USER"));
             printf("But you can't log in with a shell :(\n\n");
@@ -44,23 +49,37 @@ int main()
         case GIT_CREATE:
             setenv("REPO_NAME", strtok(NULL, " "), 1);
 
-            if(execute_in_shell(SHELL, CREATE_REPOSITORY, argv))
+            add_all_permissions(getenv("SSH_USER"), repository);
+
+            if(execute_in_shell(SHELL, CREATE_REPOSITORY))
+            {
+                remove_all_permissions(getenv("SSH_USER"), repository);
                 return 1;
+            }
             break;
         case GIT_PUSH:
-            if(execute_in_shell(GIT_SHELL, ssh_command, argv))
+            if(check_user_permission(getenv("SSH_USER"), repository, GIT_PUSH) != 1) {
+                fperror("Permission denied for command: %s\n", command);
+                return 1;
+            }
+            if(execute_in_shell(GIT_SHELL, ssh_command))
                 return 1;
             break;
         case GIT_PULL:
-            if(execute_in_shell(GIT_SHELL, ssh_command, argv))
+            // Check if the user has pull permission (for private repositories)
+            if(check_user_permission(getenv("SSH_USER"), repository, GIT_PULL) != 1) {
+                fperror("Permission denied for command: %s\n", command);
+                return 1;
+            }
+            if(execute_in_shell(GIT_SHELL, ssh_command))
                 return 1;
             break;
-        case GIT_NO_PERMISSION:
-            fperror("Permission denied for command: %s\n", ssh_command);
-            break;
         case GIT_NOT_ALLOWED:
-            fperror("Command not allowed: %s\n", ssh_command);
+            fperror("Command not allowed: %s\n", command);
             break;
     }
+
+    free(ssh_command_copy);
+
     return 0;
 }
