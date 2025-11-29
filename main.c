@@ -16,7 +16,11 @@
 int main() 
 {
     char *path;
-    asprintf(&path, "%s/%s", getenv("HOME"), LOCATION);
+
+    if(asprintf(&path, "%s/%s", getenv("HOME"), LOCATION) == -1) {
+        fperror("Memory allocation error");
+        return 1;
+    }
 
     if(chdir(path) != 0) {
         fperror("Could not change directory to %s", path);
