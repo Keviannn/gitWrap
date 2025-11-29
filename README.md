@@ -21,8 +21,8 @@ This are the basic starting prerequisites for gitWrap:
 - [x] Remote repository creation.
     - [x] Complete repository creation script.
     - [x] Correctly call the script from the binary.
-    - [ ] Create user folders automatically.
-- [ ] Access to repositories with git@gitWrap:User/repoName syntax.
+    - [x] Create user folders automatically.
+- [x] Access to repositories with git@gitWrap:User/repoName syntax.
 - [ ] User permission management.
     - [ ] Different permission levels.
     - [ ] Automatically set permissions on repository creation.
