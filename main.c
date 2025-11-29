@@ -14,11 +14,46 @@
 #define SHELL "/bin/sh"
 #define CREATE_REPOSITORY "../create_repository.sh"
 
-int main() 
+// Execute a command in the specified shell
+int execute_in_shell(char *shell_path, char *command)
+{
+    char *argv[4];
+    argv[0] = shell_path;
+    argv[1] = "-c";
+    argv[2] = command;
+    argv[3] = NULL;
+
+    execv(shell_path, argv);
+    fperror("Could not execute git command: execv failed");
+
+    return 1;
+}
+
+// Fix the repository path by adding '~' at the beginning
+char *fix_path(const char *path)
+{
+    char *fixed = NULL;
+
+    if(path != NULL)
+    {
+        if(path[0] == '\'')
+            path++;
+
+        if(asprintf(&fixed, "%s/%s", "\'~", path) == -1)
+        {
+            fperror("Could not allocate memory for fixed");
+            return NULL;
+        }
+    }
+
+    return fixed;
+}
+
+// Change to gitWrap directory
+int change_to_gitwrap_dir()
 {
     char *path;
 
-    // Change to the gitWrap/bin directory
     if(asprintf(&path, "%s/%s", getenv("HOME"), LOCATION) == -1) {
         fperror("Memory allocation error");
         return 1;
@@ -31,25 +66,39 @@ int main()
 
     free(path);
 
-    // Get the original SSH command
-    char *ssh_command = getenv("SSH_ORIGINAL_COMMAND");
+    return 0;
+}
 
-    char *ssh_command_copy = NULL;
+int main() 
+{
+    if(change_to_gitwrap_dir() != 0)
+        return 1;
+
+    // Parse SSH_ORIGINAL_COMMAND
+    char *env = getenv("SSH_ORIGINAL_COMMAND");
+    char *ssh_command;
     char *command = NULL;
     char *repository = NULL;
 
-    if(ssh_command != NULL)
+    if(env == NULL)
+        ssh_command = NULL;
+    else
     {
-        // Parse the command to get the repository name
-        ssh_command_copy = strdup(ssh_command);
-
-        if(ssh_command_copy == NULL) {
-            fperror("Could not allocate memory");
-            return 1;
-        }
-
-        command = strtok(ssh_command_copy, " ");
+        ssh_command = strdup(env);
+        // Tokenize the command
+        command = strtok(ssh_command, " ");
         repository = strtok(NULL, " ");
+    }
+
+    // Fix the repository path
+    char *real_path = fix_path(repository);
+    char *final_command = NULL;
+
+    // Check for memory allocation error
+    if(asprintf(&final_command, "%s %s", command, real_path) == -1)
+    {
+        fperror("Could not allocate memory for final_command");
+        return 1;
     }
 
     // Classify and execute the command
@@ -66,25 +115,27 @@ int main()
 
             if(execute_in_shell(SHELL, CREATE_REPOSITORY))
             {
-                remove_all_permissions(getenv("SSH_USER"), repository);
+                remove_all_permissions(getenv("SSH_USER"), real_path);
                 return 1;
             }
             break;
         case GIT_PUSH:
-            if(check_user_permission(getenv("SSH_USER"), repository, GIT_PUSH) != 1) {
+            if(check_user_permission(getenv("SSH_USER"), real_path, GIT_PUSH) != 1) 
+            {
                 fperror("Permission denied for command: %s\n", command);
                 return 1;
             }
-            if(execute_in_shell(GIT_SHELL, ssh_command))
+            if(execute_in_shell(GIT_SHELL, final_command))
                 return 1;
             break;
         case GIT_PULL:
             // Check if the user has pull permission (for private repositories)
-            if(check_user_permission(getenv("SSH_USER"), repository, GIT_PULL) != 1) {
+            if(check_user_permission(getenv("SSH_USER"), real_path, GIT_PULL) != 1) 
+            {
                 fperror("Permission denied for command: %s\n", command);
                 return 1;
             }
-            if(execute_in_shell(GIT_SHELL, ssh_command))
+            if(execute_in_shell(GIT_SHELL, final_command))
                 return 1;
             break;
         case GIT_NOT_ALLOWED:
@@ -93,7 +144,10 @@ int main()
     }
 
     if(ssh_command != NULL)
-        free(ssh_command_copy);
+        free(ssh_command);
+
+    free(final_command);
+    free(real_path);
 
     return 0;
 }
