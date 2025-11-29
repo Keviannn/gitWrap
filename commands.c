@@ -26,7 +26,7 @@ enum GIT classify_command(char *command)
     else if (strcmp(command, "git-upload-pack") == 0)
         return GIT_PULL;
 
-    else if (strncmp(strtok(command, " "), "create", 6) == 0)
+    else if (strcmp(strtok(command, " "), "create") == 0)
         return GIT_CREATE;
 
     else 

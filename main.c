@@ -2,13 +2,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "commands.h"
 
-#define GIT_CONF "./gitwrap.conf"
+#define NAME "gitwrap"
+#define LOCATION "./gitWrap/bin"
+#define GIT_CONF "../gitwrap.conf"
 #define GIT_SHELL "/usr/bin/git-shell"
 #define SHELL "/bin/sh"
-#define CREATE_REPOSITORY "./create_repository.sh"
+#define CREATE_REPOSITORY "../create_repository.sh"
+
+void fperror(const char *msg, ...)
+{
+    va_list args;
+    va_start(args, msg);
+    fprintf(stderr, "%s: ERROR ", NAME); // Custom prefix
+    vfprintf(stderr, msg, args);
+    va_end(args);
+    fprintf(stderr, "\n");
+}
 
 int execute_in_shell(char *shell_path, char *command, char *argv[4])
 {
@@ -23,13 +36,21 @@ int execute_in_shell(char *shell_path, char *command, char *argv[4])
 
 int main() 
 {
+    char *path;
+    asprintf(&path, "%s/%s", getenv("HOME"), LOCATION);
+
+    if(chdir(path) != 0) {
+        fperror("Could not change directory to %s", path);
+        return 1;
+    }
+
+    free(path);
+
     char *ssh_command = getenv("SSH_ORIGINAL_COMMAND");
 
     char *argv[4];
     argv[1] = "-c";
     argv[3] = NULL;
-
-    char *repo_var;
 
     switch (classify_command(ssh_command)) {
         case GIT_WELCOME:
@@ -38,14 +59,11 @@ int main()
             printf("Bye!\n");
             break;
         case GIT_CREATE:
-            asprintf(&repo_var, "REPO_NAME=%s", strtok(NULL, " "));
-            argv[0] = SHELL;
-            argv[2] = CREATE_REPOSITORY;
+            setenv("REPO_NAME", strtok(NULL, " "), 1);
 
-            execve(SHELL, argv, &repo_var);
-            perror("Could not execute git command: execv failed");
-
-            return 1;
+            if(execute_in_shell(SHELL, CREATE_REPOSITORY, argv))
+                return 1;
+            break;
         case GIT_PUSH:
             if(execute_in_shell(GIT_SHELL, ssh_command, argv))
                 return 1;
@@ -61,6 +79,5 @@ int main()
             printf("Command not allowed: %s\n", ssh_command);
             break;
     }
-
     return 0;
 }
