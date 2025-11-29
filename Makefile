@@ -1,7 +1,7 @@
 DEST = ./bin/
 TARGET = gitwrap
 
-SRC = main.c commands.c utils.c
+SRC = main.c commands.c utils.c permissions.c
 OBJ = $(SRC:.c=.o)
 
 CC = gcc
