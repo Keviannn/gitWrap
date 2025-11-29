@@ -2,5 +2,8 @@
 
 #pragma once
 
+// Print an error message to stderr with formatted output
 void fperror(const char *msg, ...);
-int execute_in_shell(char *shell_path, char *command, char *argv[4]);
+
+// Execute a command in a specified shell
+int execute_in_shell(char *shell, char *command);
