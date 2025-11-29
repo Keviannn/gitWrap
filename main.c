@@ -34,10 +34,23 @@ int main()
     // Get the original SSH command
     char *ssh_command = getenv("SSH_ORIGINAL_COMMAND");
 
-    // Parse the command to get the repository name
-    char *ssh_command_copy = strdup(ssh_command);
-    char *command = strtok(ssh_command_copy, " ");
-    char *repository = strtok(NULL, " ");
+    char *ssh_command_copy = NULL;
+    char *command = NULL;
+    char *repository = NULL;
+
+    if(ssh_command != NULL)
+    {
+        // Parse the command to get the repository name
+        ssh_command_copy = strdup(ssh_command);
+
+        if(ssh_command_copy == NULL) {
+            fperror("Could not allocate memory");
+            return 1;
+        }
+
+        command = strtok(ssh_command_copy, " ");
+        repository = strtok(NULL, " ");
+    }
 
     // Classify and execute the command
     switch (classify_command(command)) {
@@ -47,7 +60,7 @@ int main()
             printf("Bye!\n");
             break;
         case GIT_CREATE:
-            setenv("REPO_NAME", strtok(NULL, " "), 1);
+            setenv("REPO_NAME", repository, 1);
 
             add_all_permissions(getenv("SSH_USER"), repository);
 
@@ -79,7 +92,8 @@ int main()
             break;
     }
 
-    free(ssh_command_copy);
+    if(ssh_command != NULL)
+        free(ssh_command_copy);
 
     return 0;
 }
