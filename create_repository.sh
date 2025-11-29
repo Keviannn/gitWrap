@@ -16,7 +16,7 @@ if [ -z "$REPO_NAME" ]; then
     exit 1
 fi
 
-REPO_PATH="$BASE_DIR/$REPO_NAME"
+REPO_PATH="$BASE_DIR/$SSH_USER/$REPO_NAME"
 
 # Check if the repository already exists
 if [ -d "$REPO_PATH" ]; then
@@ -25,7 +25,7 @@ if [ -d "$REPO_PATH" ]; then
 fi
 
 echo "Creating bare repository in: $REPO_PATH"
-mkdir "$REPO_PATH" || { echo "$NAME: ERROR Could not create repository directory"; exit 1; }
+mkdir -p "$REPO_PATH" || { echo "$NAME: ERROR Could not create repository directory"; exit 1; }
 
 cd "$REPO_PATH" || { echo "$NAME: ERROR Could not change directory to repository path"; exit 1; }
 git init --bare || { echo "$NAME: ERROR git init failed"; exit 1; }
