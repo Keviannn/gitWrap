@@ -5,34 +5,13 @@
 #include <stdarg.h>
 
 #include "commands.h"
+#include "utils.h"
 
-#define NAME "gitwrap"
 #define LOCATION "./gitWrap/bin"
 #define GIT_CONF "../gitwrap.conf"
 #define GIT_SHELL "/usr/bin/git-shell"
 #define SHELL "/bin/sh"
 #define CREATE_REPOSITORY "../create_repository.sh"
-
-void fperror(const char *msg, ...)
-{
-    va_list args;
-    va_start(args, msg);
-    fprintf(stderr, "%s: ERROR ", NAME); // Custom prefix
-    vfprintf(stderr, msg, args);
-    va_end(args);
-    fprintf(stderr, "\n");
-}
-
-int execute_in_shell(char *shell_path, char *command, char *argv[4])
-{
-    argv[0] = shell_path;
-    argv[2] = command;
-
-    execv(shell_path, argv);
-    perror("Could not execute git command: execv failed");
-
-    return 1;
-}
 
 int main() 
 {
@@ -73,10 +52,10 @@ int main()
                 return 1;
             break;
         case GIT_NO_PERMISSION:
-            printf("Permission denied for command: %s\n", ssh_command);
+            fperror("Permission denied for command: %s\n", ssh_command);
             break;
         case GIT_NOT_ALLOWED:
-            printf("Command not allowed: %s\n", ssh_command);
+            fperror("Command not allowed: %s\n", ssh_command);
             break;
     }
     return 0;

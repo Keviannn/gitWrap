@@ -1,5 +1,7 @@
 //commands.h
 
+#pragma once
+
 enum GIT {
     GIT_CREATE,
     GIT_NOT_ALLOWED,
