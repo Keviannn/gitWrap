@@ -3,7 +3,8 @@
 #pragma once
 
 // Enumeration of Git command types
-enum GIT {
+enum GIT 
+{
     GIT_CREATE,
     GIT_NOT_ALLOWED,
     GIT_WELCOME,
