@@ -34,12 +34,12 @@ char *fix_path(const char *path)
 {
     char *fixed = NULL;
 
-    if(path != NULL)
+    if (path != NULL)
     {
-        if(path[0] == '\'')
+        if (path[0] == '\'')
             path++;
 
-        if(asprintf(&fixed, "%s/%s", "\'~", path) == -1)
+        if (asprintf(&fixed, "%s/%s", "\'~", path) == -1)
         {
             fperror("Could not allocate memory for fixed");
             return NULL;
@@ -54,12 +54,14 @@ int change_to_gitwrap_dir()
 {
     char *path;
 
-    if(asprintf(&path, "%s/%s", getenv("HOME"), LOCATION) == -1) {
+    if (asprintf(&path, "%s/%s", getenv("HOME"), LOCATION) == -1) 
+    {
         fperror("Memory allocation error");
         return 1;
     }
 
-    if(chdir(path) != 0) {
+    if (chdir(path) != 0)
+    {
         fperror("Could not change directory to %s", path);
         return 1;
     }
@@ -71,7 +73,7 @@ int change_to_gitwrap_dir()
 
 int main() 
 {
-    if(change_to_gitwrap_dir() != 0)
+    if (change_to_gitwrap_dir() != 0)
         return 1;
 
     // Parse SSH_ORIGINAL_COMMAND
@@ -80,22 +82,27 @@ int main()
     char *command = NULL;
     char *repository = NULL;
 
-    if(env == NULL)
+    // Duplicate the environment variable
+    if (env == NULL)
         ssh_command = NULL;
+    
     else
     {
         ssh_command = strdup(env);
-        // Tokenize the command
         command = strtok(ssh_command, " ");
         repository = strtok(NULL, " ");
     }
+
+    // If repository name is not valid stop execution
+    if (!check_repository_name(repository))
+        return 1;
 
     // Fix the repository path
     char *real_path = fix_path(repository);
     char *final_command = NULL;
 
     // Check for memory allocation error
-    if(asprintf(&final_command, "%s %s", command, real_path) == -1)
+    if (asprintf(&final_command, "%s %s", command, real_path) == -1)
     {
         fperror("Could not allocate memory for final_command");
         return 1;
@@ -113,29 +120,31 @@ int main()
 
             add_all_permissions(getenv("SSH_USER"), repository);
 
-            if(execute_in_shell(SHELL, CREATE_REPOSITORY))
+            //TODO: check repository lenght before accepting max line is 256 for conf file
+
+            if (execute_in_shell(SHELL, CREATE_REPOSITORY))
             {
                 remove_all_permissions(getenv("SSH_USER"), real_path);
                 return 1;
             }
             break;
         case GIT_PUSH:
-            if(check_user_permission(getenv("SSH_USER"), real_path, GIT_PUSH) != 1) 
+            if (check_user_permission(getenv("SSH_USER"), real_path, GIT_PUSH) != 1) 
             {
                 fperror("Permission denied for command: %s\n", command);
                 return 1;
             }
-            if(execute_in_shell(GIT_SHELL, final_command))
+            if (execute_in_shell(GIT_SHELL, final_command))
                 return 1;
             break;
         case GIT_PULL:
             // Check if the user has pull permission (for private repositories)
-            if(check_user_permission(getenv("SSH_USER"), real_path, GIT_PULL) != 1) 
+            if (check_user_permission(getenv("SSH_USER"), real_path, GIT_PULL) != 1) 
             {
                 fperror("Permission denied for command: %s\n", command);
                 return 1;
             }
-            if(execute_in_shell(GIT_SHELL, final_command))
+            if (execute_in_shell(GIT_SHELL, final_command))
                 return 1;
             break;
         case GIT_NOT_ALLOWED:
@@ -143,7 +152,7 @@ int main()
             break;
     }
 
-    if(ssh_command != NULL)
+    if (ssh_command != NULL)
         free(ssh_command);
 
     free(final_command);
