@@ -53,7 +53,7 @@ To use gitWrap, after setting up SSH keys as described in the installation secti
 For example, to clone a repository, a user would run:
 
 ```bash
-git clone git@gitWrap:repoName
+git clone git@gitWrap:Username/repoName
 ``` 
 And for other Git operations like push, pull, etc., the commands remain the same as with any Git repository.
 
