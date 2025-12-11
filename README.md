@@ -22,11 +22,17 @@ This are the basic starting prerequisites for gitWrap:
     - [x] Complete repository creation script.
     - [x] Correctly call the script from the binary.
     - [x] Create user folders automatically.
+- [ ] Remote repository deletion.
+    - [ ] Complete repository deletion based on user.
+    - [ ] Add safety checks to avoid accidental deletions.
 - [x] Access to repositories with git@gitWrap:User/repoName syntax.
 - [ ] User permission management.
     - [ ] Different permission levels.
-    - [ ] Automatically set permissions on repository creation.
-    - [ ] Commands to modify user permissions on repositories.
+    - [x] Automatically set permissions on repository creation.
+    - [ ] Automatically remove user access on repository deletion.
+- [ ] Change all bash scripts to C functions.
+
+Right now users are expected to modify permissions for other users to have acces to other repositories manually.
 
 More features will be added to the roadmap as the project evolves.
 
