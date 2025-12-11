@@ -147,7 +147,7 @@ int main()
             }
 
             // Check if repository name is too long
-            if (strlen(repository) > 256)
+            if (strlen(repository) > 256) // TODO: implement a better check
             {
                 fperror(MSG_ERROR, "Repository name too long\n");
                 break;
@@ -165,7 +165,7 @@ int main()
             //TODO: git DELETE implementation
             break;
         case GIT_PUSH:
-            if (check_user_permission(user, real_path, GIT_PUSH) != 1) 
+            if (!check_user_permission(user, real_path, GIT_PUSH)) 
             {
                 fperror(MSG_ERROR, "Permission denied for command: %s\n", command);
                 return 1;
@@ -175,7 +175,7 @@ int main()
             break;
         case GIT_PULL:
             // Check if the user has pull permission (for private repositories)
-            if (check_user_permission(user, real_path, GIT_PULL) != 1) 
+            if (!check_user_permission(user, real_path, GIT_PULL)) 
             {
                 fperror(MSG_ERROR, "Permission denied for command: %s\n", command);
                 return 1;
