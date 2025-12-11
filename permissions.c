@@ -7,7 +7,7 @@
 #include "commands.h"
 #include "utils.h"
 
-#define USERS_FILE "../test.conf"
+#define USERS_FILE "../users.conf"
 
 // Extracts the repository name from the full repository path
 char* get_repo_name(char *repository_path)
@@ -18,7 +18,7 @@ char* get_repo_name(char *repository_path)
     // Checks if the copy was successful
     if (repository_cp == NULL)
     {
-        fperror(MSG_ERROR, "Could not allocate memory for repository_format");
+        fperror(MSG_ERROR, "Could not allocate memory for repository_format\n");
         free(repository_cp);
         return NULL;
     }
@@ -33,7 +33,7 @@ char* get_repo_name(char *repository_path)
     // Checks if the copy was successful
     if (repository_name == NULL)
     {
-        fperror(MSG_ERROR, "Could not allocate memory for repository_name");
+        fperror(MSG_ERROR, "Could not allocate memory for repository_name\n");
         free(repository_name);
         return NULL;
     }
@@ -52,7 +52,7 @@ int check_user_permission(const char *user, const char *repository_path, enum GI
 
     if (file == NULL)
     {
-        fperror(MSG_ERROR, "Could not opnen users file");
+        fperror(MSG_ERROR, "Could not open users file\n");
         return 0;
     }
 
@@ -62,7 +62,7 @@ int check_user_permission(const char *user, const char *repository_path, enum GI
 
     if(asprintf(&user_format, "[%s]", user) == -1)
     {
-        fperror(MSG_ERROR, "Could not allocate memory for user_format");
+        fperror(MSG_ERROR, "Could not allocate memory for user_format\n");
         return 0;
     }
 
