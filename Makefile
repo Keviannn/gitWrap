@@ -18,5 +18,7 @@ $(DEST):
 $(DEST)$(TARGET): $(OBJ) | $(DEST)
 	$(CC) $(CFLAGS) -o $@ $^
 
+re: clean all
+
 clean:
 	rm -f $(OBJ) $(DEST)$(TARGET)
