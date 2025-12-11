@@ -5,14 +5,34 @@
 #include <unistd.h>
 #include <regex.h>
 
-void fperror(const char *msg, ...)
+void fperror(enum MSG_TYPE type, const char *msg, ...)
 {
     va_list args;
     va_start(args, msg);
-    fprintf(stderr, "%s: ERROR ", "gitWrap"); // Custom prefix
-    vfprintf(stderr, msg, args);
+    switch(type)
+    {
+        case MSG_INFO:
+            fprintf(stderr, "%s: INFO ", "gitWrap");
+            vfprintf(stderr, msg, args);
+            break;
+        case MSG_WARNING:
+            fprintf(stderr, "%s: WARNING ", "gitWrap");
+            vfprintf(stderr, msg, args);
+            break;
+        case MSG_ERROR:
+            fprintf(stderr, "%s: ERROR ", "gitWrap");
+            vfprintf(stderr, msg, args);
+            break;
+        case MSG_DEBUG:
+            if (DEBUG)
+            {
+                fprintf(stderr, "%s: DEBUG ", "gitWrap");
+                vfprintf(stderr, msg, args);
+            }
+            break;
+    }
+
     va_end(args);
-    fprintf(stderr, "\n");
 }
 
 int check_repository_name(const char *name)
@@ -28,7 +48,7 @@ int check_repository_name(const char *name)
 
     if (regcomp(&regex, pattern, REG_EXTENDED))
     {
-        fperror("Could not compile regex");
+        fperror(MSG_ERROR, "Could not compile regex");
         return 0;
     }
 
@@ -40,13 +60,13 @@ int check_repository_name(const char *name)
 
     else if(ret == REG_NOMATCH)
     {
-        fperror("Repository name \"%s\" is not valid", name);
+        fperror(MSG_WARNING, "Repository name %s may not be valid\n", name);
         return 0;
     }
 
     else
     {
-        fperror("Could not check repository name");
+        fperror(MSG_ERROR, "Could not check repository name\n");
         return 0;
     }
 }
