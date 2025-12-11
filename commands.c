@@ -17,7 +17,9 @@ enum GIT classify_command(char *command)
     else if (strcmp(strtok(command, " "), "create") == 0)
         return GIT_CREATE;
 
+    else if (strcmp(strtok(command, " "), "delete") == 0)
+        return GIT_DELETE;
+
     else 
         return GIT_NOT_ALLOWED;
 }
-

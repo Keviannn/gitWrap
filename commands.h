@@ -6,6 +6,7 @@
 enum GIT 
 {
     GIT_CREATE,
+    GIT_DELETE,
     GIT_NOT_ALLOWED,
     GIT_WELCOME,
     GIT_PUSH,
