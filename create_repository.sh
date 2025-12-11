@@ -24,10 +24,10 @@ if [ -d "$REPO_PATH" ]; then
     exit 1
 fi
 
-echo "Creating bare repository in: $REPO_PATH"
+echo "$NAME: Creating bare repository in: $REPO_PATH"
 mkdir -p "$REPO_PATH" || { echo "$NAME: ERROR Could not create repository directory"; exit 1; }
 
 cd "$REPO_PATH" || { echo "$NAME: ERROR Could not change directory to repository path"; exit 1; }
 git init --bare || { echo "$NAME: ERROR git init failed"; exit 1; }
 
-echo "Repository '$REPO_NAME' created successfully at $REPO_PATH."
+echo "$NAME: Repository '$REPO_NAME' created successfully at $REPO_PATH."
