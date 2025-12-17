@@ -4,9 +4,13 @@
 
 #include "commands.h"
 
-static const char OWNER[] = "own";
-static const char READ[] = "read";
-static const char WRITE[] = "write";
+enum PERMISSIONS {
+    PERMISSION_NONE,
+    PERMISSION_READ,
+    PERMISSION_WRITE,
+    PERMISSION_COLABORATOR,
+    PERMISSION_OWNER
+};
 
 // Check if a user has permission to execute a specific Git command on a repository
 int check_user_permission(const char *user, const char *repository_path, enum GIT command);
