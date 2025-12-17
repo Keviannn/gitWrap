@@ -73,14 +73,20 @@ int change_to_gitwrap_dir()
 
 int main() 
 {
+    fperror(MSG_DEBUG, "Starting gitWrap...\n");
+
     if (change_to_gitwrap_dir() != 0)
         return 1;
+
+    char *user = getenv("SSH_USER");
 
     // Parse SSH_ORIGINAL_COMMAND
     char *env = getenv("SSH_ORIGINAL_COMMAND");
     char *ssh_command;
     char *command = NULL;
     char *repository = NULL;
+
+    fperror(MSG_DEBUG, "SSH_ORIGINAL_COMMAND: %s\n", env);
 
     // Duplicate the environment variable
     if (env == NULL)
@@ -112,6 +118,9 @@ int main()
         }
     }
 
+    fperror(MSG_DEBUG, "Command: %s\n", command);
+    fperror(MSG_DEBUG, "Repository: %s\n", repository); 
+
     char *final_command = NULL;
     char *real_path = NULL;
 
@@ -128,7 +137,8 @@ int main()
         }
     }
 
-    char *user = getenv("SSH_USER");
+    fperror(MSG_DEBUG, "Final command to execute: %s\n", final_command);
+    fperror(MSG_DEBUG, "Real path: %s\n", real_path);
 
     // Classify and execute the command
     switch (classify_command(command)) {
