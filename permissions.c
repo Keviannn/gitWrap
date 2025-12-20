@@ -126,20 +126,11 @@ int check_user_permission(const char *user, const char *repository_path, enum GI
 
                     found_repository = 1;
 
-                    // If the line defines owner permission
-                    if (permission_from_string(line) == PERMISSION_OWNER)
+                    // If the line defines owner or collaborator permission
+                    if (permission_from_string(line) == PERMISSION_OWNER || permission_from_string(line) == PERMISSION_COLABORATOR)
                     {
                         fperror(MSG_DEBUG, "User %s is owner of %s\n", user, repository_name);
                         // User has all permissions so anything is granted
-                        grant = 1;
-                        break;
-                    }
-
-                    // If the line contains contains colaborator permission
-                    if (permission_from_string(line) == PERMISSION_COLABORATOR)
-                    {
-                        fperror(MSG_DEBUG, "User %s is colaborator of %s\n", user, repository_name);
-                        // Colaborators have all permissions so anything is granted
                         grant = 1;
                         break;
                     }
