@@ -38,7 +38,7 @@ int create_repository(const char *repository_name)
     
     fperror(MSG_DEBUG, "Base directory for repositories is %s\n", base_dir);
 
-    char *repo_path = malloc(strlen(base_dir) + strlen("/") + strlen(user) + strlen(repository_name) + 1);
+    char *repo_path = malloc(strlen(base_dir) + 1 + strlen(user) + 1 + strlen(repository_name) + 1);
     if (!repo_path)
     {
         fperror(MSG_ERROR, "Could not allocate memory for repository path\n");
