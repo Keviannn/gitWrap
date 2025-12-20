@@ -203,6 +203,7 @@ int check_user_permission(const char *user, const char *repository_path, enum GI
     return grant;
 }
 
+// Add own permission for a user and repository
 int add_own_permission(const char *user, const char *repository_name)
 {
     FILE *file = fopen(USERS_FILE, "r+");
@@ -265,7 +266,6 @@ int add_own_permission(const char *user, const char *repository_name)
                 fperror(MSG_DEBUG, "Adding permissions for %s under the user %s\n", repository_name, user);
                 char *perm_line = NULL;
                 asprintf(&perm_line, "%s = %s\n\n", repository_name, "own");
-                fperror(MSG_DEBUG, "Permission line to add: %s\n", perm_line);
                 fwrite(perm_line, sizeof(char), strlen(perm_line), temp_file);
                 free(perm_line);
                 added = 1;
@@ -287,18 +287,125 @@ int add_own_permission(const char *user, const char *repository_name)
     return added;
 }
 
-// TODO: implement for fail to create repositories cases
-int remove_entries(const char *repository_name)
+// Remove permission for a user and repository
+int remove_permission(const char *user, const char *repository_name)
 {
-    // Placeholder
-    if (repository_name == NULL)
-        return 1;
-    return 1;
+    FILE *file = fopen(USERS_FILE, "r+");
+    FILE *temp_file = fopen("temp.conf", "w");
+
+    if (file == NULL || temp_file == NULL)
+    {
+        fperror(MSG_ERROR, "Could not open users file");
+        return 0;
+    }
+
+    char line[256];
+
+    char *user_format = NULL;
+
+    if(asprintf(&user_format, "[%s]", user) == -1)
+    {
+        fperror(MSG_ERROR, "Could not allocate memory for user_format");
+        return 0;
+    }
+
+    int removed = 0;
+
+    // Check every line in the file
+    while (fgets(line, sizeof(line), file))
+    {
+        // Get only the line without the newline
+        strtok(line, "\n"); 
+
+        // If the line is the line with the user
+        if (strcmp(line, user_format) == 0)
+        {
+            fperror(MSG_DEBUG, "Found user %s\n", user);
+
+            // Get more lines after we find the user
+            while(fgets(line, sizeof(line), file))
+            { 
+                // If we find the repository name, skip writing this line to remove it
+                if(strstr(line, repository_name))
+                {
+                    fperror(MSG_DEBUG, "Removing permissions for %s under the user %s\n", repository_name, user);
+                    removed = 1;
+                    fgets(line, sizeof(line), file); // Read next line for the next write
+                    break;
+                }
+            }
+        }
+
+        // Write the line to the temporary file
+        fwrite(line, sizeof(char), strlen(line), temp_file);
+    }
+
+    // Free allocated strings
+    free(user_format);
+
+    // Close files
+    fclose(file);
+    fclose(temp_file);
+
+    // Replace original file with temporary file
+    remove(USERS_FILE);
+    rename("temp.conf", USERS_FILE);
+
+    return removed;
 }
 
-int list_user_permissions(const char *user, const char *repository)
+// Show user permissions
+void list_user_permissions(const char *user)
 {
-    //TODO: placeholder
-    printf("Listing permissions for %s in %s", user, repository);
-    return 1;
+    FILE *file = fopen(USERS_FILE, "r");
+
+    if (file == NULL)
+    {
+        fperror(MSG_ERROR, "Could not open users file");
+        return;
+    }
+
+    char line[256];
+
+    char *user_format = NULL;
+
+    if(asprintf(&user_format, "[%s]", user) == -1)
+    {
+        fperror(MSG_ERROR, "Could not allocate memory for user_format");
+        return;
+    }
+
+    // Check every line in the file
+    while (fgets(line, sizeof(line), file))
+    {
+        // Get only the line without the newline
+        strtok(line, "\n"); 
+
+        // If the line is the line with the user we are looking for
+        if (strcmp(line, user_format) == 0)
+        {
+            fperror(MSG_DEBUG, "Listing permissions for user %s\n", user);
+
+            // Get more lines after we find the user
+            while(fgets(line, sizeof(line), file))
+            {
+                // Ignore comments and blank lines
+                if (line[0] == '#' || line[0] == '\n')
+                    continue;
+
+                // Print lines until we reach another user section
+                if (line[0] == '[')
+                    break;
+
+                // Print the permission line
+                fperror(MSG_DEBUG, "Permission line: %s", line);
+            }
+        }
+    }
+
+    // Free allocated strings
+    free(user_format);
+
+    // Close files
+    fclose(file);
 }
