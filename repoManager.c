@@ -38,14 +38,14 @@ int create_repository(const char *repository_name)
     
     fperror(MSG_DEBUG, "Base directory for repositories is %s\n", base_dir);
 
-    char *repo_path = malloc(strlen(base_dir) + strlen("/") + strlen(repository_name) + 1);
+    char *repo_path = malloc(strlen(base_dir) + strlen("/") + strlen(user) + strlen(repository_name) + 1);
     if (!repo_path)
     {
         fperror(MSG_ERROR, "Could not allocate memory for repository path\n");
         return 0;
     }
 
-    sprintf(repo_path, "%s/%s", base_dir, repository_name);
+    sprintf(repo_path, "%s/%s/%s", base_dir, user, repository_name);
 
     fperror(MSG_DEBUG, "Path for new repository is %s\n", repo_path);
 
@@ -78,6 +78,7 @@ int create_repository(const char *repository_name)
 
     if (!add_own_permission(user, repository_name))
     {
+        // TODO: Cleanup created repository
         free(repo_path);
         return 0;
     }
