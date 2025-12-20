@@ -88,7 +88,7 @@ int check_user_permission(const char *user, const char *repository_path, enum GI
 
     char found_user = 0;
     char found_repository = 0;
-    int grant = 0;
+    char grant = 0;
 
     // Check every line in the file
     while (fgets(line, sizeof(line), file))
@@ -224,8 +224,8 @@ int add_own_permission(const char *user, const char *repository_name)
         return 0;
     }
 
-    int added = 0;
-    int found = 0;
+    char added = 0;
+    char found = 0;
 
     // Check every line in the file
     while (fgets(line, sizeof(line), file))
@@ -264,7 +264,11 @@ int add_own_permission(const char *user, const char *repository_name)
                 // If we find an empty line we add permissions
                 fperror(MSG_DEBUG, "Adding permissions for %s under the user %s\n", repository_name, user);
                 char *perm_line = NULL;
-                asprintf(&perm_line, "%s = %s\n\n", repository_name, "own");
+                if (!asprintf(&perm_line, "%s = %s\n\n", repository_name, "own"))
+                {
+                    fperror(MSG_ERROR, "Could not allocate memory for permission line");
+                    return 0;
+                }
                 fwrite(perm_line, sizeof(char), strlen(perm_line), temp_file);
                 free(perm_line);
                 added = 1;
@@ -316,7 +320,8 @@ int remove_permission(const char *user, const char *repository_name)
         return 0;
     }
 
-    int removed = 0;
+    char removed = 0;
+    char eof_reached = 0;
 
     // Check every line in the file
     while (fgets(line, sizeof(line), file))
@@ -337,14 +342,20 @@ int remove_permission(const char *user, const char *repository_name)
                 {
                     fperror(MSG_DEBUG, "Removing permissions for %s under the user %s\n", repository_name, user);
                     removed = 1;
-                    fgets(line, sizeof(line), file); // Read next line for the next write
+                    // Read next line for the next write
+                    if (fgets(line, sizeof(line), file) == NULL)
+                    {
+                        fperror(MSG_DEBUG, "End of file reached after removing permission line\n"); 
+                        eof_reached = 1;
+                    }
                     break;
                 }
             }
         }
 
         // Write the line to the temporary file
-        fwrite(line, sizeof(char), strlen(line), temp_file);
+        if (!eof_reached)
+            fwrite(line, sizeof(char), strlen(line), temp_file);
     }
 
     // Free allocated strings
