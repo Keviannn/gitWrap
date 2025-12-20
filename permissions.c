@@ -198,11 +198,19 @@ int check_user_permission(const char *user, const char *repository_path, enum GI
 int add_own_permission(const char *user, const char *repository_name)
 {
     FILE *file = fopen(USERS_FILE, "r+");
-    FILE *temp_file = fopen("temp.conf", "w");
 
-    if (file == NULL || temp_file == NULL)
+    if (file == NULL)
     {
-        fperror(MSG_ERROR, "Could not open users file");
+        fperror(MSG_ERROR, "Could not open users file\n");
+        return 0;
+    }
+
+    FILE *temp_file = fopen("temp.conf", "w");
+    
+    if (temp_file == NULL)
+    {
+        fperror(MSG_ERROR, "Could not open temporary users file\n");
+        fclose(file);
         return 0;
     }
 
@@ -282,11 +290,19 @@ int add_own_permission(const char *user, const char *repository_name)
 int remove_permission(const char *user, const char *repository_name)
 {
     FILE *file = fopen(USERS_FILE, "r+");
-    FILE *temp_file = fopen("temp.conf", "w");
 
-    if (file == NULL || temp_file == NULL)
+    if (file == NULL)
     {
         fperror(MSG_ERROR, "Could not open users file");
+        return 0;
+    }
+
+    FILE *temp_file = fopen("temp.conf", "w");
+
+    if (temp_file == NULL)
+    {
+        fperror(MSG_ERROR, "Could not open temporary users file");
+        fclose(file);
         return 0;
     }
 
