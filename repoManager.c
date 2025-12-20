@@ -6,6 +6,7 @@
 #include <sys/types.h>
 
 #include "repoManager.h"
+#include "permissions.h"
 #include "utils.h"
 
 int directory_exists(const char *path)
@@ -33,6 +34,8 @@ int create_repository(const char *repository_name)
         return 0;
     }
     
+    char *user = getenv("SSH_USER");
+    
     fperror(MSG_DEBUG, "Base directory for repositories is %s\n", base_dir);
 
     char *repo_path = malloc(strlen(base_dir) + strlen("/") + strlen(repository_name) + 1);
@@ -49,7 +52,7 @@ int create_repository(const char *repository_name)
     // Check if the repository already exists
     if (directory_exists(repo_path)) 
     {
-        fperror(MSG_ERROR, "Repository '%s' already exists for %s.\n", repository_name, getenv("SSH_USER"));
+        fperror(MSG_ERROR, "Repository '%s' already exists for %s.\n", repository_name, user);
         free(repo_path);
         return 0;
     }
@@ -72,9 +75,14 @@ int create_repository(const char *repository_name)
         free(repo_path);
         return 0;
     }
+
+    if (!add_own_permission(user, repository_name))
+    {
+        free(repo_path);
+        return 0;
+    }
     
     free(repo_path);
-
     return 1;
 }
 

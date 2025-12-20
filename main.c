@@ -160,15 +160,7 @@ int main()
                 break;
             }
 
-            // If creation fails remove permissions
-            if (!create_repository(repository))
-                break;
-
-            if(!add_own_permission(user, repository))
-            {
-                fperror(MSG_ERROR, "No permissions were added\n");
-                break;
-            }
+            create_repository(repository);
 
             break;
         case GIT_DELETE:
