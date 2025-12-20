@@ -30,7 +30,7 @@ This are the basic starting prerequisites for gitWrap:
     - [ ] Different permission levels.
     - [x] Automatically set permissions on repository creation.
     - [ ] Automatically remove user access on repository deletion.
-- [ ] Change all bash scripts to C functions.
+- [x] Change all bash scripts to C functions.
 
 Right now users are expected to modify permissions for other users to have acces to other repositories manually.
 

@@ -60,7 +60,7 @@ int check_repository_name(const char *name)
 
     else if(ret == REG_NOMATCH)
     {
-        fperror(MSG_WARNING, "Repository name %s may not be valid\n", name);
+        fperror(MSG_WARNING, "Repository name %s is only valid for create command\n", name);
         return 0;
     }
 

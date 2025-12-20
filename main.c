@@ -7,6 +7,7 @@
 #include "commands.h"
 #include "utils.h"
 #include "permissions.h"
+#include "repoManager.h"
 
 #define LOCATION "./gitWrap/bin"
 #define GIT_CONF "../gitwrap.conf"
@@ -91,7 +92,6 @@ int main()
     // Duplicate the environment variable
     if (env == NULL)
         ssh_command = NULL;
-    
     else
     {
         ssh_command = strdup(env);
@@ -99,7 +99,7 @@ int main()
         repository = strtok(NULL, " ");
     }
 
-    // If repository name is not valid stop execution
+    // If repository name is not valid...
     if (!check_repository_name(repository))
     {
         // Debug lines
@@ -107,14 +107,13 @@ int main()
         {
             if (classify_command(command) == GIT_CREATE)
                 fperror(MSG_DEBUG, "Repository name is valid for the command %s\n", command);
-            else
-                return 1;
         }
 
-        else
+        // And if the command is not create, exit
+        if (classify_command(command) != GIT_CREATE)
         {
-            if (!(classify_command(command) == GIT_CREATE))
-                return 1;
+            free(ssh_command);
+            return 1;
         }
     }
 
@@ -133,12 +132,16 @@ int main()
         if (asprintf(&final_command, "%s %s", command, real_path) == -1)
         {
             fperror(MSG_ERROR, "Could not allocate memory for final_command");
+            free(real_path);
             return 1;
         }
     }
 
     fperror(MSG_DEBUG, "Final command to execute: %s\n", final_command);
     fperror(MSG_DEBUG, "Real path: %s\n", real_path);
+
+    if(DEBUG)
+        list_user_permissions(user);
 
     // Classify and execute the command
     switch (classify_command(command)) {
@@ -148,61 +151,59 @@ int main()
             printf("Bye!\n");
             break;
         case GIT_CREATE:
-            fperror(MSG_DEBUG, "Trying to create repository for user %s\n", user);
-            
+            fperror(MSG_DEBUG, "Trying to create repository %s for user %s\n", repository, user);
+
+            // Check if repository name is too long
+            if (strlen(repository) > 200)
+            {
+                fperror(MSG_ERROR, "Repository name must be less than 200 characters\n");
+                break;
+            }
+
+            // If creation fails remove permissions
+            if (!create_repository(repository))
+                break;
+
             if(!add_own_permission(user, repository))
             {
                 fperror(MSG_ERROR, "No permissions were added\n");
                 break;
             }
 
-            // Check if repository name is too long
-            if (strlen(repository) > 256) // TODO: implement a better check
-            {
-                fperror(MSG_ERROR, "Repository name too long\n");
-                break;
-            }
-
-            //TODO: review if create repository could fail in order to rollback permission addition
-
-            //TODO: change script form bash to C
-            setenv("REPO_NAME", repository, 1);
-            if (execute_in_shell(SHELL, CREATE_REPOSITORY))
-                return 1;
-
             break;
         case GIT_DELETE:
             //TODO: git DELETE implementation
             break;
         case GIT_PUSH:
+            // Check if the user has push permission
             if (!check_user_permission(user, real_path, GIT_PUSH)) 
             {
                 fperror(MSG_ERROR, "Permission denied for command: %s\n", command);
-                return 1;
+                break;
             }
+
             if (execute_in_shell(GIT_SHELL, final_command))
-                return 1;
+                fperror(MSG_ERROR, "Failed to execute command: %s\n", command);
+
             break;
         case GIT_PULL:
             // Check if the user has pull permission (for private repositories)
             if (!check_user_permission(user, real_path, GIT_PULL)) 
             {
                 fperror(MSG_ERROR, "Permission denied for command: %s\n", command);
-                return 1;
+                break;
             }
             if (execute_in_shell(GIT_SHELL, final_command))
-                return 1;
+                fperror(MSG_ERROR, "Failed to execute command: %s\n", command);
             break;
         case GIT_NOT_ALLOWED:
             fperror(MSG_ERROR, "Command not allowed: %s\n", command);
             break;
     }
 
-    if (ssh_command != NULL)
-        free(ssh_command);
-
-    free(final_command);
+    free(ssh_command);
     free(real_path);
+    free(final_command);
 
     return 0;
 }
