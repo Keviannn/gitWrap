@@ -1,6 +1,6 @@
 # gitWrap - A Git Wrapper for Servers
 
-gitWrap is a lightweight Git wrapper designed for server environments mainly written in C. It manages the creation of new repositories and handles users and permissions on different repositories. It provides a simple and efficient way to host Git repositories.
+gitWrap is a lightweight Git wrapper designed for server environments written in C. It manages the creation of new repositories and handles users and permissions on different repositories. It provides a simple and efficient way to host Git repositories.
 
 ## Description
 
@@ -72,6 +72,27 @@ ssh git@gitWrap create repoName
 ```
 
 ---
+
+## Permissions
+For permission management, gitWrap reads a file called `users.conf` located one level above the gitWrap binary location.
+
+This file should contain lines with the following format:
+```
+#Comment1
+[Username1]
+repository1 = permission_level
+#Comment2
+repository2 = permission_level
+
+[Username2]
+repository1 = permission_level
+```
+
+Where `permission_level` can be, for now, values like `read`, `write`, `own` and `collaborator`.\
+The `own` permission is added automatically on repository creation for the user creating it.
+
+It is **important** to note that creating the file and adding the users must be done manually for now.\
+It is also **important** to note that between the last repository and the next user section, there **must be an empty line** and that between different repositories for the same user, there **must not be empty lines**.
 
 **Permissions and user management is still under development.**
 
