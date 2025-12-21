@@ -147,7 +147,12 @@ int delete_repository(const char *repository_name)
 
     fperror(MSG_INFO, "Input the repository name again to confirm deletion: ");
     char confirm_name[201];
-    scanf("%200s", confirm_name);
+    if (scanf("%200s", confirm_name) != 1)
+    {
+        fperror(MSG_ERROR, "Failed to read confirmation input.\n");
+        return 0;
+    }
+
     if (strcmp(confirm_name, repository_name) != 0)
     {
         fperror(MSG_ERROR, "Repository name does not match. Aborting deletion.\n");
