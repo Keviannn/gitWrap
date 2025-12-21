@@ -240,9 +240,13 @@ int add_own_permission(const char *user, const char *repository_name)
         if (strcmp(line, user_format) == 0)
         {
             fperror(MSG_DEBUG, "Found user %s\n", user);
-            // Get more lines until we find an empty line
-            while(fgets(line, sizeof(line), file)[0] != '\n')
+            // Get more lines until end of file
+            while(fgets(line, sizeof(line), file))
             {
+                // If we reach an empty line we stop
+                if (line[0] == '\n')
+                    break;
+
                 // Write the line to the temporary file
                 fwrite(line, sizeof(char), strlen(line), temp_file);
 
@@ -250,7 +254,7 @@ int add_own_permission(const char *user, const char *repository_name)
                 if (line[0] == '#')
                     continue;
 
-                // If the line contains the repository name
+                // If the line contains the repository name, we cannot add permissions
                 if (strstr(line, repository_name))
                 {
                     fperror(MSG_ERROR, "There are already permissions for %s under the user %s\n", repository_name, user);
