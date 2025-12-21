@@ -32,8 +32,6 @@ This are the basic starting prerequisites for gitWrap:
     - [x] Automatically remove user access on repository deletion.
 - [x] Change all bash scripts to C functions.
 
-Right now users are expected to modify permissions manually for other users to have access to other repositories.
-
 ## Installation
 
 To install gitWrap, follow these steps:
@@ -97,8 +95,12 @@ repository1 = permission_level
 Where `permission_level` can be, for now, values like `read`, `write`, `own` and `collaborator`.\
 The `own` permission is added automatically on repository creation for the user creating it.
 
+Right now users are expected to modify permissions manually for other users to have access to other repositories.
+
 It is **important** to note that creating the file and adding the users must be done manually for now.\
 It is also **important** to note that between the last repository and the next user section, there **must be an empty line** and that between different repositories for the same user, there **must not be empty lines**.
+
+Multiple user having different repositories with the same name is not actively supported right now, it has to be tested as it might already work but might lead to unexpected results.
 
 **Permissions and user management is still under development.**
 
