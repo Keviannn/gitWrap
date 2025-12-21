@@ -99,6 +99,9 @@ int main()
         repository = strtok(NULL, " ");
     }
 
+    fperror(MSG_DEBUG, "Command: %s\n", command);
+    fperror(MSG_DEBUG, "Repository: %s\n", repository); 
+
     // If repository name is not valid...
     if (!check_repository_name(repository))
     {
@@ -109,16 +112,14 @@ int main()
                 fperror(MSG_DEBUG, "Repository name is valid for the command %s\n", command);
         }
 
-        // And if the command is not create, exit
-        if (classify_command(command) != GIT_CREATE)
+        // And if the command is not create or delete, exit
+        if (classify_command(command) != GIT_CREATE && classify_command(command) != GIT_DELETE)
         {
             free(ssh_command);
             return 1;
         }
     }
 
-    fperror(MSG_DEBUG, "Command: %s\n", command);
-    fperror(MSG_DEBUG, "Repository: %s\n", repository); 
 
     char *final_command = NULL;
     char *real_path = NULL;
@@ -164,7 +165,17 @@ int main()
 
             break;
         case GIT_DELETE:
-            //TODO: git DELETE implementation
+            fperror(MSG_DEBUG, "Trying to delete repository %s for user %s\n", repository, user);
+
+            // Check if the repository name is too long
+            if (strlen(repository) > 200)
+            {
+                fperror(MSG_ERROR, "Repository name must be less than 200 characters\n");
+                break;
+            }
+
+            delete_repository(repository);
+
             break;
         case GIT_PUSH:
             // Check if the user has push permission

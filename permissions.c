@@ -126,13 +126,31 @@ int check_user_permission(const char *user, const char *repository_path, enum GI
 
                     found_repository = 1;
 
-                    // If the line defines owner or collaborator permission
-                    if (permission_from_string(line) == PERMISSION_OWNER || permission_from_string(line) == PERMISSION_COLABORATOR)
+                    // If the line defines owner
+                    if (permission_from_string(line) == PERMISSION_OWNER)
                     {
                         fperror(MSG_DEBUG, "User %s is owner of %s\n", user, repository_name);
                         // User has all permissions so anything is granted
                         grant = 1;
                         break;
+                    }
+
+                    // If the line defines colaborator
+                    if (permission_from_string(line) == PERMISSION_COLABORATOR)
+                    {
+                        fperror(MSG_DEBUG, "User %s is colaborator of %s\n", user, repository_name);
+                        if (command == GIT_DELETE)
+                        {
+                            fperror(MSG_ERROR, "User %s cannot delete repository %s as colaborator\n", user, repository_name);
+                            grant = 0;
+                            break;
+                        }
+                        else
+                        {
+                            // Colaborators have all permissions except delete
+                            grant = 1;
+                            break;
+                        }
                     }
 
                     // If the line contains read permission
@@ -325,11 +343,12 @@ int remove_permission(const char *user, const char *repository_name)
     }
 
     char removed = 0;
-    char eof_reached = 0;
 
     // Check every line in the file
     while (fgets(line, sizeof(line), file))
     {
+        fwrite(line, sizeof(char), strlen(line), temp_file);
+
         // Get only the line without the newline
         strtok(line, "\n"); 
 
@@ -346,20 +365,13 @@ int remove_permission(const char *user, const char *repository_name)
                 {
                     fperror(MSG_DEBUG, "Removing permissions for %s under the user %s\n", repository_name, user);
                     removed = 1;
-                    // Read next line for the next write
-                    if (fgets(line, sizeof(line), file) == NULL)
-                    {
-                        fperror(MSG_DEBUG, "End of file reached after removing permission line\n"); 
-                        eof_reached = 1;
-                    }
                     break;
                 }
+
+                // If not write the line to the temporary file
+                fwrite(line, sizeof(char), strlen(line), temp_file);
             }
         }
-
-        // Write the line to the temporary file
-        if (!eof_reached)
-            fwrite(line, sizeof(char), strlen(line), temp_file);
     }
 
     // Free allocated strings
